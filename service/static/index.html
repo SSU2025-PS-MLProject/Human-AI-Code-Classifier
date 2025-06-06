@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>Human-AI Code Classifier</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* CSS는 변경 사항 없습니다. */
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --primary-color: #3a7fff;
+            --primary-hover-color: #5c9bff;
+            --text-color: #e0e0e0;
+            --text-muted-color: #888;
+            --border-color: #333;
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'Fira Code', monospace;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 10px 20px rgba(0, 0, 0, 0.2);
+            --gradient: linear-gradient(45deg, #3a7fff, #9d78ff);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-sans); background-color: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 1rem; }
+        .card { background-color: var(--surface-color); border-radius: 16px; padding: 2.5rem; width: 100%; max-width: 600px; box-shadow: var(--shadow); border: 1px solid var(--border-color); text-align: center; }
+        header h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 2rem; background: var(--gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        #uploadForm { display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 2rem; }
+        .file-upload-wrapper { display: flex; align-items: center; gap: 1rem; border: 1px dashed var(--border-color); border-radius: 8px; padding: 0.5rem; }
+        .file-label { display: inline-flex; cursor: pointer; }
+        .file-label .btn { padding: 0.75rem 1rem; }
+        #fileInput { display: none; }
+        #fileName { color: var(--text-muted-color); font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        select { background-color: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem; font-family: var(--font-sans); font-size: 1rem; appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 0.7rem center; background-size: 1.2em; }
+        select:focus { outline: 2px solid var(--primary-color); border-color: transparent; }
+        .btn { border: none; border-radius: 8px; padding: 0.75rem 1.5rem; font-family: var(--font-sans); font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease-in-out; background-color: #333; color: var(--text-color); }
+        .btn:hover { filter: brightness(1.2); }
+        .btn.primary { background: var(--gradient); color: white; }
+        .btn:disabled { cursor: not-allowed; opacity: 0.6; }
+        .spinner { border: 4px solid rgba(255, 255, 255, 0.2); border-left-color: var(--primary-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 2rem auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .hidden { display: none; }
+        footer { margin-top: 2rem; color: var(--text-muted-color); font-size: 0.9rem; }
+        #resultContainer { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2rem; width: 100%; }
+        .chart-wrapper { flex: 1; min-width: 250px; max-width: 300px; }
+        .chart-wrapper h3 { margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600; color: var(--text-color); }
+    </style>
+</head>
+<body>
+    <main class="card">
+        <header>
+            <h1>🧩 Human-AI Code Classifier</h1>
+        </header>
+
+        <form id="uploadForm">
+            <div class="file-upload-wrapper">
+                <label class="file-label">
+                    <span class="btn">Select Code File</span>
+                    <input type="file" id="fileInput" accept=".py,.cpp" required />
+                </label>
+                <span id="fileName">No file selected</span>
+            </div>
+            <select id="language">
+                <option value="python">Python</option>
+                <option value="cpp">C++</option>
+            </select>
+            <button class="btn primary" type="submit" id="submitButton">
+                Upload &amp; Predict
+            </button>
+        </form>
+
+        <div id="spinner" class="spinner hidden"></div>
+
+        <div id="resultContainer" class="hidden">
+            <div class="chart-wrapper">
+                <h3>AI vs Human</h3>
+                <canvas id="binaryChart"></canvas>
+            </div>
+            <div class="chart-wrapper" id="multiLabelChartWrapper">
+                <h3>AI Model Analysis</h3>
+                <canvas id="multiLabelChart"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <small>&copy; 2025 Human-AI Code Classifier</small>
+    </footer>
+
+    <script>
+        const uploadForm = document.getElementById("uploadForm");
+        const fileInput = document.getElementById("fileInput");
+        const languageSelect = document.getElementById("language");
+        const submitButton = document.getElementById("submitButton");
+        const spinner = document.getElementById("spinner");
+        const fileNameSpan = document.getElementById("fileName");
+        
+        const resultContainer = document.getElementById("resultContainer");
+        const binaryChartCtx = document.getElementById('binaryChart').getContext('2d');
+        const multiLabelChartCtx = document.getElementById('multiLabelChart').getContext('2d');
+        
+        // ID가 추가되어 이제 이 요소는 정상적으로 찾아집니다.
+        const multiLabelChartWrapper = document.getElementById('multiLabelChartWrapper');
+
+        let binaryChartInstance = null;
+        let multiLabelChartInstance = null;
+
+        fileInput.addEventListener("change", () => {
+            if (fileInput.files.length > 0) {
+                const filename = fileInput.files[0].name;
+                fileNameSpan.textContent = filename;
+                if (filename.toLowerCase().endsWith('.py')) languageSelect.value = 'python';
+                else if (filename.toLowerCase().endsWith('.cpp')) languageSelect.value = 'cpp';
+            } else {
+                fileNameSpan.textContent = "No file selected";
+            }
+        });
+
+        uploadForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            submitButton.disabled = true;
+            submitButton.textContent = "Processing...";
+            spinner.classList.remove("hidden");
+            resultContainer.classList.add("hidden"); 
+
+            if (binaryChartInstance) binaryChartInstance.destroy();
+            if (multiLabelChartInstance) multiLabelChartInstance.destroy();
+            
+            const file = fileInput.files[0];
+            const language = languageSelect.value;
+            const formData = new FormData();
+            formData.append("code_file", file);
+            formData.append("language", language); // 백엔드 사양에 맞게 language를 FormData에 포함
+            
+            try {
+                // 1. 파일 업로드 (Body에 code_file, language 포함)
+                const uploadRes = await fetch(`/code`, {
+                    method: "POST",
+                    body: formData
+                });
+                const uploadResult = await uploadRes.json();
+                if (!uploadRes.ok) throw new Error(`File upload failed: ${uploadResult.message || 'Server error'}`);
+                
+                // 2. 분류 요청 (백엔드 사양에 맞게 file_id 파라미터 사용)
+                const fileId = uploadResult.file_id;
+                if (!fileId) throw new Error("File ID not returned from server."); // file_id 없는 경우 예외 처리
+
+                const classifyRes = await fetch(`/classification?language=${language}&file_id=${fileId}`);
+                const resultData = await classifyRes.json();
+                if (!classifyRes.ok) throw new Error(`Classification failed: ${resultData.message || 'Server error'}`);
+
+                drawCharts(resultData);
+                resultContainer.classList.remove("hidden");
+
+            } catch (err) {
+                alert("An error occurred: " + err.message);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = "Upload & Predict";
+                spinner.classList.add("hidden");
+            }
+        });
+
+        // drawCharts 및 getChartOptions 함수는 변경 사항 없습니다.
+        function drawCharts(data) {
+            const aiPrediction = data.binary_prediction.find(p => p.label === 'AI');
+            const humanPrediction = data.binary_prediction.find(p => p.label === 'HUMAN');
+            
+            binaryChartInstance = new Chart(binaryChartCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['AI', 'Human'],
+                    datasets: [{
+                        label: 'Probability',
+                        data: [aiPrediction.probability, humanPrediction.probability],
+                        backgroundColor: [ 'rgba(255, 99, 132, 0.7)', 'rgba(54, 162, 235, 0.7)' ],
+                        borderColor: [ 'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)' ],
+                        borderWidth: 1,
+                        hoverOffset: 4
+                    }]
+                },
+                options: getChartOptions('AI vs Human Classification')
+            });
+
+            if (aiPrediction.probability >= 0.5) {
+                multiLabelChartWrapper.classList.remove('hidden');
+
+                const multiLabelData = data.multi_label_prediction
+                    .filter(p => p.label !== 'HUMAN')
+                    .sort((a,b) => b.probability - a.probability);
+
+                multiLabelChartInstance = new Chart(multiLabelChartCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: multiLabelData.map(p => p.label),
+                        datasets: [{
+                            label: 'Probability',
+                            data: multiLabelData.map(p => p.probability),
+                            backgroundColor: [ 'rgba(255, 159, 64, 0.7)', 'rgba(75, 192, 192, 0.7)', 'rgba(153, 102, 255, 0.7)', 'rgba(255, 205, 86, 0.7)', 'rgba(201, 203, 207, 0.7)' ],
+                            borderColor: [ 'rgba(255, 159, 64, 1)', 'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 205, 86, 1)', 'rgba(201, 203, 207, 1)' ],
+                            borderWidth: 1,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: getChartOptions('AI Model Likelihood')
+                });
+            } else {
+                multiLabelChartWrapper.classList.add('hidden');
+            }
+        }
+
+        function getChartOptions(title) {
+            return {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'top', labels: { color: 'white', font: { size: 12, family: "'Inter', sans-serif" } } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) { label += ': '; }
+                                if (context.parsed !== null) { label += (context.parsed * 100).toFixed(2) + '%'; }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            };
+        }
+    </script>
+</body>
+</html>
