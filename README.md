@@ -30,11 +30,11 @@ All required dependencies are listed in classifier_env.yaml
 ├── models
 │   ├── python_xgb_top2.joblib // XGBoost Python Multilabel classifier
 │   ├── svm_python_bin.joblib // SVM Python Binary classifier
-│   ├── cpp_xgb_top2.joblib // XGBoost CPP Multilabel classifier
+│   ├── svm_multi_cpp_version2.joblib // SVM CPP Multilabel classifier
 │   └── svm_binary_cpp.joblib // SVM CPP Binary classifier
 ├── service
 │   ├── cpp_utils.py
-│   ├── main.py
+│   ├── main.py // Service runner
 │   ├── python_utils.py
 │   └── static
 │       ├── favicon.ico
@@ -65,7 +65,7 @@ Models include:
 - SVM
 - XGBoost
 - Random Forest
-- Ensemble (major voting)
+- Ensemble
 
 ## 🛠️ Setup
 
@@ -92,7 +92,7 @@ conda activate classifier
 
 ### 4. Set up environment variables (for C++ feature extraction)
 
-After setting up the environment, locate the libclang.so file and export it:
+After setting up the environment, locate the libclang.so file and export it
 
 #### Find the path
 ```

@@ -55,7 +55,7 @@ logger.info("FASTAPI 어플리케이션 실행..")
 logger.info("모델 로드 중...")
 python_multilabel_classifier = load("../models/python_xgb_top2.joblib")
 python_binary_classifier = load("../models/svm_python_bin.joblib")
-cpp_multilabel_classifier = load("../models/cpp_xgb_top2.joblib")
+cpp_multilabel_classifier = load("../models/svm_multi_cpp_version2.joblib")
 cpp_binary_classifier = load("../models/svm_binary_cpp.joblib")
 logger.info("모델 로드 완료")
 
@@ -70,6 +70,10 @@ async def root():
 @app.get("/health")
 def health_check():
     return {"status": "OK"}
+
+@app.get("/favicon.ico")
+def favicon():
+    return FileResponse(os.path.join("static", "favicon.ico"))
 
 
 @app.post("/code")
