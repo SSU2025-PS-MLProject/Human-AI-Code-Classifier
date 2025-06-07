@@ -80,7 +80,7 @@ bash Miniforge3-$(uname)-$(uname -m).sh
 
 ```
 git clone https://github.com/SSU2025-PS-MLProject/human-ai-code-classifier.git
-cd human-ai-code-classifier
+cd Human-AI-Code-Classifier
 ```
 
 ### 3. Set up the Conda environment
@@ -120,15 +120,15 @@ Note: The API loads models from ../models/. Adjust the path if needed.
 
 ⸻
 
-## 🚀 Running the API
+## 🚀 Running the Web/API Server
 
 ```
 cd service
 uvicorn main:app --host 0.0.0.0 --port [AnyPort] --reload
 ```
---reload argument is optional
+`--reload` argument is optional
 
-You can add --workers [numberOfProcess] argument if you want to process multiple requests
+You can add `--workers [numberOfProcess]` argument if you want to process multiple requests
 
 ## Web page
 You can access web page at: http://[YourPublicIpAddr]:[Port]
