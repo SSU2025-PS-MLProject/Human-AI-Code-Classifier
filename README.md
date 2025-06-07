@@ -111,10 +111,10 @@ Download pretrained models from Google Drive and place them in the following dir
 ```
 project-root/
 └─ models/
-   ├─ ensemble_cpp_binary.joblib
-   ├─ ensemble_cpp_multi.joblib
-   ├─ ensemble_python_binary.joblib
-   └─ ensemble_python_multi.joblib
+    ├── svm_python_multi_version2.joblib // SVM Python Multilabel classifier
+│   ├── svm_python_bin.joblib // SVM Python Binary classifier
+│   ├── svm_multi_cpp_version2.joblib // SVM CPP Multilabel classifier
+│   └── cpp_xgb_binary.joblib // XGBoost CPP Binary classifier
 ```
 Note: The API loads models from ../models/. Adjust the path if needed.
 
