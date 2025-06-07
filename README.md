@@ -28,10 +28,10 @@ All required dependencies are listed in classifier_env.yaml
 │       ├── merge_csv.py
 │       └── python_feature_extractor.py
 ├── models
-│   ├── python_xgb_top2.joblib // XGBoost Python Multilabel classifier
+│   ├── svm_python_multi_version2.joblib // SVM Python Multilabel classifier
 │   ├── svm_python_bin.joblib // SVM Python Binary classifier
 │   ├── svm_multi_cpp_version2.joblib // SVM CPP Multilabel classifier
-│   └── svm_binary_cpp.joblib // SVM CPP Binary classifier
+│   └── cpp_xgb_binary.joblib // XGBoost CPP Binary classifier
 ├── service
 │   ├── cpp_utils.py
 │   ├── main.py // Service runner
