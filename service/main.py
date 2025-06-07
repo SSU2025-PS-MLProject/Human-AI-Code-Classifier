@@ -56,7 +56,7 @@ logger.info("모델 로드 중...")
 python_multilabel_classifier = load("../models/python_xgb_top2.joblib")
 python_binary_classifier = load("../models/svm_python_bin.joblib")
 cpp_multilabel_classifier = load("../models/cpp_xgb_top2.joblib")
-cpp_binary_classifier = load("../models/cpp_xgb_binary.joblib")
+cpp_binary_classifier = load("../models/svm_binary_cpp.joblib")
 logger.info("모델 로드 완료")
 
 class Language(str, Enum):
