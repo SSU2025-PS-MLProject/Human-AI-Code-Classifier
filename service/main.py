@@ -53,10 +53,10 @@ logger = logging.getLogger("[FASTAPI]")
 logger.info("FASTAPI 어플리케이션 실행..")
 
 logger.info("모델 로드 중...")
-ensemble_python_multilabel_classifier = load("../models/ensemble_python_multi.joblib")
-ensemble_python_binary_classifier = load("../models/ensemble_python_binary.joblib")
-ensemble_cpp_multilabel_classifier = load("../models/ensemble_cpp_multi.joblib")
-ensemble_cpp_binary_classifier = load("../models/ensemble_cpp_binary.joblib")
+python_multilabel_classifier = load("../models/python_xgb_top2.joblib")
+python_binary_classifier = load("../models/svm_python_bin.joblib")
+cpp_multilabel_classifier = load("../models/cpp_xgb_top2.joblib")
+cpp_binary_classifier = load("../models/cpp_xgb_binary.joblib")
 logger.info("모델 로드 완료")
 
 class Language(str, Enum):
@@ -142,13 +142,13 @@ def classification(file_id: str, language: Language):
 
             # 다중 레이블 분류 예측
             logger.info("다중 레이블 분류 예측 시작")
-            multi_label_probs = ensemble_python_multilabel_classifier.predict_proba(X_pred)[0]
+            multi_label_probs = python_multilabel_classifier.predict_proba(X_pred)[0]
             multi_label_prediction = multi_label_probs.tolist()
             logger.info("다중 레이블 분류 예측 완료")
 
             # 이진 분류 예측
             logger.info("이진 분류 예측 시작")
-            binary_probs = ensemble_python_binary_classifier.predict_proba(X_pred)[0]
+            binary_probs = python_binary_classifier.predict_proba(X_pred)[0]
             binary_prediction = binary_probs.tolist()
             logger.info("이진 분류 예측 완료")
         elif language == Language.CPP:
@@ -170,13 +170,13 @@ def classification(file_id: str, language: Language):
 
             # 다중 레이블 분류 예측
             logger.info("다중 레이블 분류 예측 시작")
-            multi_label_probs = ensemble_cpp_multilabel_classifier.predict_proba(X_pred)[0]
+            multi_label_probs = cpp_multilabel_classifier.predict_proba(X_pred)[0]
             multi_label_prediction = multi_label_probs.tolist()
             logger.info("다중 레이블 분류 예측 완료")
 
             # 이진 분류 예측
             logger.info("이진 분류 예측 시작")
-            binary_probs = ensemble_cpp_binary_classifier.predict_proba(X_pred)[0]
+            binary_probs = cpp_binary_classifier.predict_proba(X_pred)[0]
             binary_prediction = binary_probs.tolist()
             logger.info("이진 분류 예측 완료")
         else:
